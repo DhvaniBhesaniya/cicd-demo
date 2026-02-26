@@ -1,0 +1,17 @@
+# render.yaml
+# Render reads this file to know how to build and run your service.
+# Commit this file to the root of your repo.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: docker-cicd-demo
+    runtime: docker          # tells Render to use your Dockerfile
+    plan: free               # free tier (spins down after 15 min inactivity)
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: RUST_LOG
+        value: "info"
+    healthCheckPath: /health  # Render pings this to know the app is up
