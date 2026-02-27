@@ -5,7 +5,7 @@
 #   dependencies are compiled before our own source code, so Docker
 #   only re-runs the expensive dep build when Cargo.toml changes.
 # ─────────────────────────────────────────────────────────────────────────────
-FROM rust:1.78-slim AS builder
+FROM rust:1.85-slim AS builder
 
 WORKDIR /app
 
