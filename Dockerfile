@@ -10,7 +10,7 @@ FROM rust:1.78-slim AS builder
 WORKDIR /app
 
 # 1. Copy only the manifest files first (cache layer for dependencies)
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # 2. Create a dummy main so cargo can build deps without our real code
 RUN mkdir src && echo "fn main() {}" > src/main.rs
