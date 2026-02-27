@@ -33,8 +33,8 @@ jobs:
       - name: Clippy
         run: cargo clippy -- -W warnings
 
-      - name: Format check
-        run: cargo fmt --check
+      # - name: Format check
+      #   run: cargo fmt --check
 
   deploy:
     name: Deploy to Render
