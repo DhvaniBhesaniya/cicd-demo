@@ -227,3 +227,6 @@ Once you understand this project, try adding:
 3. **Integration tests** with `axum::Server` in test mode
 4. **Environment config** with the `dotenvy` crate
 5. **Metrics** with `prometheus` + `axum-prometheus`
+
+
+..
