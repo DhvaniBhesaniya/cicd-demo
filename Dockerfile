@@ -1,16 +1,32 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 — Builder
 #   Uses the official Rust image to compile a fully-static binary.
+#   We use "cargo-chef" pattern manually for better layer caching:
+#   dependencies are compiled before our own source code, so Docker
+#   only re-runs the expensive dep build when Cargo.toml changes.
 # ─────────────────────────────────────────────────────────────────────────────
 FROM rust:1.85-slim AS builder
 
 WORKDIR /app
 
-# Copy source code
-COPY . .
+# 1. Copy only the manifest files first (cache layer for dependencies)
+COPY Cargo.toml ./
 
-# Build the application
-RUN cargo build --release
+# 2. Create a dummy src tree so cargo can build deps without our real code
+RUN mkdir -p src/handlers src/models src/routes \
+    && echo "fn main() {}" > src/main.rs \
+    && echo "" > src/handlers/mod.rs \
+    && echo "" > src/models/mod.rs \
+    && echo "" > src/routes/mod.rs
+
+# 3. Build dependencies only — this layer is cached unless Cargo.toml changes
+RUN cargo build --release && rm -rf src
+
+# 4. Now copy real source and build the actual binary
+COPY src ./src
+
+# Touch source files so cargo knows they changed (avoids cache hit on binary)
+RUN find src -name "*.rs" -exec touch {} + && cargo build --release
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — Runtime
