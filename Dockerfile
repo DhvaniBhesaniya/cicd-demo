@@ -1,28 +1,16 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 1 — Builder
 #   Uses the official Rust image to compile a fully-static binary.
-#   We use "cargo-chef" pattern manually for better layer caching:
-#   dependencies are compiled before our own source code, so Docker
-#   only re-runs the expensive dep build when Cargo.toml changes.
 # ─────────────────────────────────────────────────────────────────────────────
 FROM rust:1.85-slim AS builder
 
 WORKDIR /app
 
-# 1. Copy only the manifest files first (cache layer for dependencies)
-COPY Cargo.toml ./
+# Copy source code
+COPY . .
 
-# 2. Create a dummy main so cargo can build deps without our real code
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-
-# 3. Build dependencies only — this layer is cached unless Cargo.toml changes
-RUN cargo build --release && rm -rf src
-
-# 4. Now copy real source and build the actual binary
-COPY src ./src
-
-# Touch main.rs so cargo knows it changed (avoids cache hit on binary)
-RUN touch src/main.rs && cargo build --release
+# Build the application
+RUN cargo build --release
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — Runtime
@@ -33,7 +21,7 @@ FROM debian:bookworm-slim AS runtime
 
 # Install only the minimum OS libs needed at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
+    ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
